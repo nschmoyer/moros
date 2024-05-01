@@ -32,6 +32,7 @@ pub mod read;
 pub mod shell;
 pub mod socket;
 pub mod tcp;
+pub mod telnet;
 pub mod time;
 pub mod user;
 pub mod vga;
