@@ -10,6 +10,7 @@
 - Fix invalid VGA palette reset (#605)
 - Improve VGA palette parser (#604)
 - Fix underflow errors in VGA driver (#603)
+- Add telnet client (feature/telnet)
 
 ## 0.10.3 (2024-03-20)
 - Add ANSI OSC color palette support ([#566](https://github.com/vinc/moros/pull/566))
