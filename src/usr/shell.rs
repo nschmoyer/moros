@@ -14,10 +14,10 @@ use alloc::vec::Vec;
 use core::sync::atomic::{fence, Ordering};
 
 // TODO: Scan /bin
-const AUTOCOMPLETE_COMMANDS: [&str; 37] = [
+const AUTOCOMPLETE_COMMANDS: [&str; 38] = [
     "2048", "base64", "calc", "copy", "date", "delete", "dhcp", "disk", "edit",
     "elf", "env", "goto", "hash", "help", "hex", "host", "http", "httpd",
-    "install", "keyboard", "life", "lisp", "list", "memory", "move", "net",
+    "install", "keyboard", "life", "lisp", "list", "ls", "memory", "move", "net",
     "pci", "quit", "read", "shell", "socket", "tcp", "telnet", "time", "user", "vga",
     "write",
 ];
@@ -545,6 +545,7 @@ fn dispatch(args: &[&str], config: &mut Config) -> Result<(), ExitCode> {
         "lisp"     => usr::lisp::main(args),
         "list"     => usr::list::main(args),
         "logs"     => cmd_logs(),
+        "ls"       => usr::coreutils::ls::main(args),
         "memory"   => usr::memory::main(args),
         "move"     => usr::r#move::main(args),
         "net"      => usr::net::main(args),

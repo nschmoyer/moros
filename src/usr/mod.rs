@@ -3,6 +3,7 @@ pub mod beep;
 pub mod calc;
 pub mod chess;
 pub mod copy;
+pub mod coreutils;
 pub mod date;
 pub mod delete;
 pub mod dhcp;
