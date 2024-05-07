@@ -14,11 +14,11 @@ use alloc::vec::Vec;
 use core::sync::atomic::{fence, Ordering};
 
 // TODO: Scan /bin
-const AUTOCOMPLETE_COMMANDS: [&str; 38] = [
+const AUTOCOMPLETE_COMMANDS: [&str; 41] = [
     "2048", "base64", "calc", "copy", "date", "delete", "dhcp", "disk", "edit",
-    "elf", "env", "goto", "hash", "help", "hex", "host", "http", "httpd",
+    "elf", "env", "false", "goto", "hash", "help", "hex", "host", "http", "httpd",
     "install", "keyboard", "life", "lisp", "list", "ls", "memory", "move", "net",
-    "pci", "quit", "read", "shell", "socket", "tcp", "telnet", "time", "user", "vga",
+    "pci", "pwd", "quit", "read", "shell", "socket", "tcp", "telnet", "time", "true", "user", "vga",
     "write",
 ];
 
@@ -531,6 +531,7 @@ fn dispatch(args: &[&str], config: &mut Config) -> Result<(), ExitCode> {
         "edit"     => usr::editor::main(args),
         "elf"      => usr::elf::main(args),
         "env"      => usr::env::main(args),
+        "false"    => usr::coreutils::r#false::main(args),
         "find"     => usr::find::main(args),
         "goto"     => cmd_change_dir(args, config), // TODO: Remove this
         "hash"     => usr::hash::main(args),
@@ -551,6 +552,7 @@ fn dispatch(args: &[&str], config: &mut Config) -> Result<(), ExitCode> {
         "net"      => usr::net::main(args),
         "pci"      => usr::pci::main(args),
         "pi"       => usr::pi::main(args),
+        "pwd"      => usr::coreutils::pwd::main(args),
         "quit"     => Err(ExitCode::ShellExit),
         "read"     => usr::read::main(args),
         "set"      => cmd_set(args, config),
@@ -559,6 +561,7 @@ fn dispatch(args: &[&str], config: &mut Config) -> Result<(), ExitCode> {
         "tcp"      => usr::tcp::main(args),
         "telnet"   => usr::telnet::main(args),
         "time"     => usr::time::main(args),
+        "true"     => usr::coreutils::r#true::main(args),
         "unalias"  => cmd_unalias(args, config),
         "unset"    => cmd_unset(args, config),
         "version"  => cmd_version(),

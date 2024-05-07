@@ -15,6 +15,11 @@ video = []
 serial = []
 userspace = []
 
+[profile.release]
+strip = true  # Automatically strip symbols from the binary.
+opt-level = "z"
+lto = true
+
 [dependencies]
 acpi = "5.0.0"
 aml = "0.16.4"

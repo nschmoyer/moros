@@ -34,9 +34,6 @@ impl Connection {
 }
 
 pub fn main(args: &[&str]) -> Result<(), ExitCode> {
-    let csi_verbose = Style::color("LightBlue");
-    let csi_reset = Style::reset();
-
     // Parse command line options
     let mut is_verbose = false;
     let mut host = "";

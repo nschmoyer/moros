@@ -1,3 +1,7 @@
+/// todo:
+///     - add user/group to long format
+///     - add rwx to long format
+
 use crate::api::clock::DATE_TIME;
 use crate::api::console::Style;
 use crate::api::fs;
