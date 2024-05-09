@@ -113,11 +113,11 @@ pub fn prompt_string(success: bool) -> String {
     }
     let line1 = format!("{}{}{}", csi_line1, current_dir, csi_reset);
     let line2 = format!(
-        "{}>{} ",
+        "{} >{} ",
         if success { csi_line2 } else { csi_error },
         csi_reset
     );
-    format!("{}\n{}", line1, line2)
+    format!("{}{}", line1, line2)
 }
 
 fn is_globbing(arg: &str) -> bool {
