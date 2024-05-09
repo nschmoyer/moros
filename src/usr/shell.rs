@@ -14,8 +14,8 @@ use alloc::vec::Vec;
 use core::sync::atomic::{fence, Ordering};
 
 // TODO: Scan /bin
-const AUTOCOMPLETE_COMMANDS: [&str; 41] = [
-    "2048", "base64", "calc", "copy", "date", "delete", "dhcp", "disk", "edit",
+const AUTOCOMPLETE_COMMANDS: [&str; 42] = [
+    "2048", "asm", "base64", "calc", "copy", "date", "delete", "dhcp", "disk", "edit",
     "elf", "env", "false", "goto", "hash", "help", "hex", "host", "http", "httpd",
     "install", "keyboard", "life", "lisp", "list", "ls", "memory", "move", "net",
     "pci", "pwd", "quit", "read", "shell", "socket", "tcp", "telnet", "time", "true", "user", "vga",
@@ -519,6 +519,7 @@ fn dispatch(args: &[&str], config: &mut Config) -> Result<(), ExitCode> {
         ""         => Ok(()),
         "2048"     => usr::pow::main(args),
         "alias"    => cmd_alias(args, config),
+        "asm"      => usr::assembler::main(&args),
         "base64"   => usr::base64::main(args),
         "beep"     => usr::beep::main(args),
         "calc"     => usr::calc::main(args),
