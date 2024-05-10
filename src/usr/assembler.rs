@@ -234,10 +234,9 @@ pub fn assemble(input: &str) -> Result<Vec<u8>, IcedError> {
                             "xor" => {
                                 if let Ok(reg) = parse_r32(&args[1]) {
                                     if let Ok(num) = parse_u32(&args[2]) {
-                                        a.xor(reg, num)?
+                                        a.xor(reg, num)?;
                                     }
                                 }
-                                // todo: u64
                             }
                             _ => {
                                 error!("Invalid instruction '{}'\n", args[0]);
@@ -356,7 +355,12 @@ fn parse_r64(name: &str) -> Result<AsmRegister64, ()> {
 }
 
 fn hex(input: &str) -> IResult<&str, &str> {
-    recognize(preceded(alt((tag("0x"), tag("0X"))), alphanumeric1))(input)
+    recognize(
+        preceded(
+            alt((tag("0x"), tag("0X"), tag(""))),
+            alphanumeric1
+        )
+    )(input)
 }
 
 fn help() {
