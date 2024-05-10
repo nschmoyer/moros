@@ -96,6 +96,20 @@ pub fn assemble(input: &str) -> Result<Vec<u8>, IcedError> {
                     Exp::Instr(args) => {
                         // Note: see https://www.cs.virginia.edu/~evans/cs216/guides/x86.html
                         match args[0].as_str() {
+                            // add (integer addition)
+                            "add" => {
+                                if let Ok(reg1) = parse_r32(&args[1]) {
+                                    if let Ok(reg2) = parse_r32(&args[2]) {
+                                        a.add(reg1, reg2)?;
+                                    } else if let Ok(num) = parse_u32(&args[2]) {
+                                        a.add(reg1, num)?;
+                                    }
+                                } else if let Ok(reg1) = parse_r64(&args[1]) {
+                                    if let Ok(reg2) = parse_r64(&args[2]) {
+                                        a.add(reg1, reg2)?;
+                                    }
+                                }
+                            }
                             "call" => {
                                 if let Ok(num) = parse_r32(&args[1]) {
                                     a.call(num)?;
@@ -232,6 +246,20 @@ pub fn assemble(input: &str) -> Result<Vec<u8>, IcedError> {
                             }
                             "ret" => {
                                 a.ret()?;
+                            }
+                            // sub (integer subtraction)
+                            "sub" => {
+                                if let Ok(reg1) = parse_r32(&args[1]) {
+                                    if let Ok(reg2) = parse_r32(&args[2]) {
+                                        a.sub(reg1, reg2)?;
+                                    } else if let Ok(num) = parse_u32(&args[2]) {
+                                        a.sub(reg1, num)?;
+                                    }
+                                } else if let Ok(reg1) = parse_r64(&args[1]) {
+                                    if let Ok(reg2) = parse_r64(&args[2]) {
+                                        a.sub(reg1, reg2)?;
+                                    }
+                                }
                             }
                             "syscall" => {
                                 a.syscall()?;
