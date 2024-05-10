@@ -12,9 +12,11 @@ use core::iter;
 use iced_x86::code_asm::*;
 use nom::IResult;
 use nom::branch::alt;
+use nom::bytes::complete::is_not;
 use nom::bytes::complete::tag;
 use nom::character::complete::alpha1;
 use nom::character::complete::alphanumeric1;
+use nom::character::complete::char;
 use nom::character::complete::multispace0;
 use nom::combinator::recognize;
 use nom::multi::separated_list0;
@@ -121,6 +123,9 @@ pub fn assemble(input: &str) -> Result<Vec<u8>, IcedError> {
                                 for arg in args[1..].iter() {
                                     if let Ok(num) = parse_u8(arg) {
                                         buf.push(num);
+                                    } else if arg.starts_with('"') && arg.ends_with('"') {
+                                        // Add each byte of the string literal to the buffer
+                                        buf.extend_from_slice(&arg[1..arg.len()-1].as_bytes());
                                     }
                                 }
                                 a.db(&buf)?;
@@ -273,7 +278,7 @@ fn parse_instr(input: &str) -> IResult<&str, Exp> {
         delimited(multispace0, alpha1, multispace0),
         separated_list0(
             terminated(tag(","), multispace0),
-            alt((alpha1, hex))
+            alt((string_literal, alpha1, hex))
         )
     ))(input)?;
     let instr = iter::once(code).chain(args.iter().copied()).map(|s| s.to_string()).collect();
@@ -360,6 +365,14 @@ fn hex(input: &str) -> IResult<&str, &str> {
             alt((tag("0x"), tag("0X"), tag(""))),
             alphanumeric1
         )
+    )(input)
+}
+
+fn string_literal(input: &str) -> IResult<&str, &str> {
+    delimited(
+        char('"'),
+        is_not("\""),
+        char('"')
     )(input)
 }
 
