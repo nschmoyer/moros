@@ -7,7 +7,6 @@ use alloc::collections::btree_map::BTreeMap;
 use alloc::string::String;
 use alloc::string::ToString;
 use alloc::vec::Vec;
-use alloc::vec;
 use core::num::ParseIntError;
 use core::iter;
 use iced_x86::code_asm::*;
@@ -23,12 +22,12 @@ use nom::sequence::delimited;
 use nom::sequence::preceded;
 use nom::sequence::terminated;
 use nom::sequence::tuple;
+use crate::sys::process::{BIN_MAGIC, ELF_MAGIC};
 
 #[derive(Clone, Debug)]
 pub enum Exp {
     Label(String),
     Instr(Vec<String>),
-    Global(String),
 }
 
 pub fn main(args: &[&str]) -> Result<(), ExitCode> {
@@ -43,7 +42,8 @@ pub fn main(args: &[&str]) -> Result<(), ExitCode> {
     let path = args[1];
     if let Ok(input) = fs::read_to_string(path) {
         if let Ok(output) = assemble(&input) {
-            let mut buf = vec![0x7F, b'B', b'I', b'N'];
+            let mut buf = BIN_MAGIC.to_vec();
+            //let mut buf = ELF_MAGIC.to_vec();
             buf.extend_from_slice(&output);
             syscall::write(1, &buf);
         }
@@ -55,9 +55,10 @@ pub fn main(args: &[&str]) -> Result<(), ExitCode> {
 }
 
 pub fn assemble(input: &str) -> Result<Vec<u8>, IcedError> {
+    let mut buf = input;
     let mut a = CodeAssembler::new(64)?;
     let mut labels = BTreeMap::new();
-    let mut buf = input;
+
     loop {
         match parse(buf) {
             Ok((rem, exp)) => {
@@ -89,14 +90,112 @@ pub fn assemble(input: &str) -> Result<Vec<u8>, IcedError> {
                         if let Some(mut label) = labels.get_mut(&name) {
                             a.set_label(&mut label)?;
                         }
-                    },
-                    Exp::Global(name) => {
-                        // For now, this does nothing.
-                        // todo: handle exporting/marking global labels here.
-                        // globals.insert(name);
-                    },
+                    }
                     Exp::Instr(args) => {
+                        // Note: see https://www.cs.virginia.edu/~evans/cs216/guides/x86.html
                         match args[0].as_str() {
+                            "call" => {
+                                if let Ok(num) = parse_r32(&args[1]) {
+                                    a.call(num)?;
+                                } else if let Ok(num) = parse_r64(&args[1]) {
+                                    a.call(num)?
+                                } else if let Some(label) = labels.get(&args[1]) {
+                                    a.call(*label)?;
+                                }
+                            }
+                            "cmp" => {
+                                if let Ok(reg1) = parse_r32(&args[1]) {
+                                    if let Ok(reg2) = parse_r32(&args[2]) {
+                                        a.cmp(reg1, reg2)?;
+                                    } else if let Ok(num) = parse_u32(&args[2]) {
+                                        a.cmp(reg1, num)?;
+                                    }
+                                } else if let Ok(reg1) = parse_r64(&args[1]) {
+                                    if let Ok(reg2) = parse_r64(&args[2]) {
+                                        a.cmp(reg1, reg2)?;
+                                    }
+                                }
+                            }
+                            "db" => {
+                                let mut buf = Vec::new();
+                                for arg in args[1..].iter() {
+                                    if let Ok(num) = parse_u8(arg) {
+                                        buf.push(num);
+                                    }
+                                }
+                                a.db(&buf)?;
+                            }
+                            // dec <reg> (decrement operand by one)
+                            // todo: dec <mem>
+                            "dec" => {
+                                if let Ok(num) = parse_r32(&args[1]) {
+                                    a.dec(num)?;
+                                } else if let Ok(num) = parse_r64(&args[1]) {
+                                    a.dec(num)?;
+                                }
+                            }
+                            // inc <reg> (increment operand by one)
+                            // todo: inc <mem>
+                            "inc" => {
+                                if let Ok(num) = parse_r32(&args[1]) {
+                                    a.inc(num)?;
+                                } else if let Ok(num) = parse_r64(&args[1]) {
+                                    a.inc(num)?;
+                                }
+                            }
+                            "int" => {
+                                if let Ok(num) = parse_u32(&args[1]) {
+                                    a.int(num)?;
+                                }
+                            }
+                            // je <label> (jump when equal)
+                            "je" => {
+                                if let Some(label) = labels.get(&args[1]) {
+                                    a.je(*label)?;
+                                }
+                            }
+                            // jg <label> (jump when greater than)
+                            "jg" => {
+                                if let Some(label) = labels.get(&args[1]) {
+                                    a.jg(*label)?;
+                                }
+                            }
+                            // jge <label> (jump when greater than or equal to)
+                            "jge" => {
+                                if let Some(label) = labels.get(&args[1]) {
+                                    a.jge(*label)?;
+                                }
+                            }
+                            // jl <label> (jump when less than)
+                            "jl" => {
+                                if let Some(label) = labels.get(&args[1]) {
+                                    a.jl(*label)?;
+                                }
+                            }
+                            // jle <label> (jump when less than or equal to)
+                            "jle" => {
+                                if let Some(label) = labels.get(&args[1]) {
+                                    a.jle(*label)?;
+                                }
+                            }
+                            // jmp <label> (jump to label)
+                            "jmp" => {
+                                if let Some(label) = labels.get(&args[1]) {
+                                    a.jmp(*label)?;
+                                }
+                            }
+                            // jne <label> (jump when not equal)
+                            "jne" => {
+                                if let Some(label) = labels.get(&args[1]) {
+                                    a.jne(*label)?;
+                                }
+                            }
+                            // jz <label> (jump when last result was zero)
+                            "jz" => {
+                                if let Some(label) = labels.get(&args[1]) {
+                                    a.jz(*label)?;
+                                }
+                            }
                             "mov" => {
                                 if let Ok(reg) = parse_r32(&args[1]) {
                                     if let Ok(num) = parse_u32(&args[2]) {
@@ -112,19 +211,25 @@ pub fn assemble(input: &str) -> Result<Vec<u8>, IcedError> {
                                     }
                                 }
                             }
-                            "int" => {
-                                if let Ok(num) = parse_u32(&args[1]) {
-                                    a.int(num)?;
+                            "pop" => {
+                                if let Ok(reg) = parse_r32(&args[1]) {
+                                    a.pop(reg)?;
+                                } else if let Ok(reg) = parse_r64(&args[1]) {
+                                    a.pop(reg)?;
                                 }
                             }
-                            "db" => {
-                                let mut buf = Vec::new();
-                                for arg in args[1..].iter() {
-                                    if let Ok(num) = parse_u8(arg) {
-                                        buf.push(num);
-                                    }
+                            "push" => {
+                                if let Ok(reg) = parse_r32(&args[1]) {
+                                    a.push(reg)?;
+                                } else if let Ok(reg) = parse_r64(&args[1]) {
+                                    a.push(reg)?;
                                 }
-                                a.db(&buf)?;
+                            }
+                            "ret" => {
+                                a.ret()?;
+                            }
+                            "syscall" => {
+                                a.syscall()?;
                             }
                             "xor" => {
                                 if let Ok(reg) = parse_r32(&args[1]) {
@@ -160,8 +265,7 @@ pub fn assemble(input: &str) -> Result<Vec<u8>, IcedError> {
 fn parse(input: &str) -> IResult<&str, Exp> {
     alt((
         parse_label,
-        parse_instr,
-        parse_global
+        parse_instr
     ))(input)
 }
 
@@ -181,12 +285,6 @@ fn parse_instr(input: &str) -> IResult<&str, Exp> {
 fn parse_label(input: &str) -> IResult<&str, Exp> {
     let (input, label) = delimited(multispace0, terminated(alpha1, tag(":")), multispace0)(input)?;
     Ok((input, Exp::Label(label.to_string())))
-}
-
-fn parse_global(input: &str) -> IResult<&str, Exp> {
-    let (input, _) = delimited(multispace0, tag("global"), multispace0)(input)?;
-    let (input, label) = alpha1(input)?;
-    Ok((input, Exp::Global(label.to_string())))
 }
 
 fn parse_u8(s: &str) -> Result<u8, ParseIntError> {

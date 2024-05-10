@@ -23,8 +23,8 @@ use x86_64::structures::paging::{
 };
 use x86_64::VirtAddr;
 
-const ELF_MAGIC: [u8; 4] = [0x7F, b'E', b'L', b'F'];
-const BIN_MAGIC: [u8; 4] = [0x7F, b'B', b'I', b'N'];
+pub const ELF_MAGIC: [u8; 4] = [0x7F, b'E', b'L', b'F'];
+pub const BIN_MAGIC: [u8; 4] = [0x7F, b'B', b'I', b'N'];
 
 const MAX_HANDLES: usize = 64;
 const MAX_PROCS: usize = 4; // TODO: Increase this

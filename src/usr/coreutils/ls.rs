@@ -19,7 +19,7 @@ const INLINE_PAD: usize = 1;
 
 pub fn main(args: &[&str]) -> Result<(), ExitCode> {
     let mut path: &str = &sys::process::dir();
-    let mut sort = "name";
+    let sort = "name";
     let mut hide_dot_files = true;
     let mut cur_width = 0;
     let mut long_format = false;
